@@ -6,7 +6,7 @@ var Google = require( 'googleapis' );
 var OAuth2 = Google.auth.OAuth2;
 var async = require( 'async' );
 
-var config = require( __dirname + '/config.json' );
+var config = require( './config.json' );
 
 var openURL = require( __dirname + '/open-url' );
 var Readline = require( __dirname + '/readline-tty' );
