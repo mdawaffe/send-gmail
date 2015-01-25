@@ -1,0 +1,139 @@
+#!/usr/bin/env node
+
+var fs = require( 'fs' );
+var format = require( 'util' ).format;
+
+var GetOpt = require( 'node-getopt' );
+var async = require( 'async' );
+var isEmail = require( 'validate-email' );
+
+var nodemailer = require( 'nodemailer' );
+var gmailTransport = require( './nodemailer-gmail-oauth2-transport' );
+var authenticate = require( './authenticate-cli' );
+
+var openURL = require( './open-url' );
+
+var getopt = new GetOpt( [
+	[ 's', 'subject=STRING' ],
+	[ 'c', 'cc=ADDRESS+' ],
+	[ 'b', 'bcc=ADDRESS+' ],
+	[ 't', 'to=ADDRESS+' ],
+	[ 'a', 'attachment=FILE+' ],
+	[ 'A', 'attachment-filename=STRING+' ],
+	[ 'S', 'send', "Don't create a draft: send a message" ],
+	[ 'N', 'no-open', "Don't open the message for editing in Gmail" ],
+	[ 'h', 'help' ]
+] ).bindHelp(
+	"Usage: send-gmail [OPTION]\n" +
+  	"Send or Draft an email through Gmail.\n" +
+	"Gets and uses oAuth credentials.\n" +
+  	"\n" +
+  	"[[OPTIONS]]\n"
+);
+
+var opts = getopt.parseSystem();
+
+function isNotEmail( address ) {
+	return ! isEmail( address );
+}
+
+var to = opts.argv.concat( opts.options.to || [] );
+var cc = opts.options.cc || [];
+var bcc = opts.options.bcc || [];
+var addresses = Array.prototype.concat.apply( to, cc, bcc );
+var attachments = opts.options.attachment || [];
+var attachmentFileNames = opts.options['attachment-filename'] || [];
+
+var transporter = nodemailer.createTransport( gmailTransport( { client: authenticate.client, draft: ! opts.options.send } ) );
+
+function findInvalidAddresses( callback ) {
+	var invalidAddresses = addresses.filter( isNotEmail );
+	if ( invalidAddresses.length ) {
+		console.error( "Invalid Address:" );
+		console.error( "\t" + invalidAddresses.join( "\n\t" ) );
+		callback( "Invalid Address" );
+	} else {
+		callback( null );
+	}
+}
+
+function findInvalidFiles( callback ) {
+	async.reject( attachments, fs.exists, function( invalidFiles ) {
+		if ( invalidFiles.length ) {
+			console.error( "Invalid File:" );
+			console.error( "\t" + invalidFiles.join( "\n\t" ) );
+			callback( "Invalid File" );
+		} else {
+			callback( null );
+		}
+	} );
+}
+
+function ensureRequiredOptions( callback ) {
+	if ( ! addresses.length ) {
+		callback( 'No Addresses' );
+	} else if ( ! opts.options.subject ) {
+		callback( 'No Subject' );
+	} else {
+		callback( null );
+	}
+}
+
+function send( callback ) {
+	var message = {
+		to: to.join( ', ' ),
+		cc: cc.join( ', ' ),
+		bcc: bcc.join( ', ' ),
+		subject: opts.options.subject,
+		text: process.stdin.isTTY ? '' : process.stdin,
+		attachments: attachments.map( function( file, index ) {
+			var attachment = { path: file };
+			if ( attachmentFileNames[index] ) {
+				attachment.filename = attachmentFileNames[index];
+			}
+			return attachment;
+		} )
+	};
+
+	transporter.sendMail( message, callback );
+}
+
+function getURL( response, callback ) {
+	// https://mail.google.com/mail/b/user@domain.com/
+	// https://mail.google.com/a/domain.com/
+
+	var message = response.response.message ? response.response.message : response.response;
+	var formatString;
+
+	if ( ~ message.labelIds.indexOf( 'SENT' ) ) {
+		formatString = 'https://mail.google.com/mail/b/%s/#sent/%s';
+	} else {
+		formatString = 'https://mail.google.com/mail/b/%s/#drafts?compose=%s';
+	}
+
+	callback( null, format(
+		formatString,
+		authenticate.client.credentials.email,
+		message.id
+	) );
+}
+
+function maybeOpenURL( url, callback ) {
+	if ( opts.options['no-open'] ) {
+		callback( null, url );
+	} else {
+		openURL( url, callback );
+	}
+}
+
+async.waterfall( [
+	findInvalidAddresses,
+	findInvalidFiles,
+	ensureRequiredOptions,
+	authenticate.authenticate,
+	send,
+	getURL,
+	maybeOpenURL,
+], function( err, URL ) {
+	console.log( URL );
+} );
