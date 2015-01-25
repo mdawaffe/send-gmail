@@ -6,10 +6,10 @@ var Google = require( 'googleapis' );
 var OAuth2 = Google.auth.OAuth2;
 var async = require( 'async' );
 
-var config = require( './config.json' );
+var config = require( __dirname + '/config.json' );
 
-var openURL = require( './open-url' );
-var Readline = require( './readline-tty' );
+var openURL = require( __dirname + '/open-url' );
+var Readline = require( __dirname + '/readline-tty' );
 
 var oauth2Client = new OAuth2( config.google.CLIENT_ID, config.google.CLIENT_SECRET, config.google.REDIRECT_URL );
 

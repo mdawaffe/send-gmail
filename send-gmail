@@ -8,10 +8,10 @@ var async = require( 'async' );
 var isEmail = require( 'validate-email' );
 
 var nodemailer = require( 'nodemailer' );
-var gmailTransport = require( './nodemailer-gmail-oauth2-transport' );
-var authenticate = require( './authenticate-cli' );
+var gmailTransport = require( __dirname + '/nodemailer-gmail-oauth2-transport' );
+var authenticate = require( __dirname + '/authenticate-cli' );
 
-var openURL = require( './open-url' );
+var openURL = require( __dirname + '/open-url' );
 
 var getopt = new GetOpt( [
 	[ 's', 'subject=STRING' ],
