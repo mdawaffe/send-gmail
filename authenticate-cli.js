@@ -50,7 +50,7 @@ function getCredentials( storedCredentials, callback ) {
 	var url = oauth2Client.generateAuthUrl( {
 		access_type: 'offline',
 		scope: scopes,
-		hd: 'a8c.com',
+		hd: config.google.RESTRICT_AUTH_DOMAIN,
 	} );
 
 	openURL( url, function( err ) {
