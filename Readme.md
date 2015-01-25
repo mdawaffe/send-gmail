@@ -8,6 +8,8 @@ Includes authentication example and bin script.
 Config
 ------
 
+`config.json`
+
 ```js
 {
 	"google": {
