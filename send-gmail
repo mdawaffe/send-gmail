@@ -23,7 +23,7 @@ var getopt = new GetOpt( [
 	[ 'A', 'attachment-filename=STRING+' ],
 	[ 'S', 'send', "Don't create a draft: send a message" ],
 	[ 'N', 'no-open', "Don't open the message for editing in Gmail" ],
-	[ 'C', 'config', "Path to config path.  Default's to current directory's config.json" ],
+	[ 'C', 'config=STRING', "Path to config path.  Default's to current directory's config.json" ],
 	[ 'h', 'help' ]
 ] ).bindHelp(
 	"Usage: send-gmail [OPTION]\n" +
