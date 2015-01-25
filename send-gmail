@@ -9,7 +9,8 @@ var isEmail = require( 'validate-email' );
 
 var nodemailer = require( 'nodemailer' );
 var gmailTransport = require( __dirname + '/nodemailer-gmail-oauth2-transport' );
-var authenticate = require( __dirname + '/authenticate-cli' );
+
+var Authenticate = require( __dirname + '/authenticate-cli' );
 
 var openURL = require( __dirname + '/open-url' );
 
@@ -22,6 +23,7 @@ var getopt = new GetOpt( [
 	[ 'A', 'attachment-filename=STRING+' ],
 	[ 'S', 'send', "Don't create a draft: send a message" ],
 	[ 'N', 'no-open', "Don't open the message for editing in Gmail" ],
+	[ 'C', 'config', "Path to config path.  Default's to current directory's config.json" ],
 	[ 'h', 'help' ]
 ] ).bindHelp(
 	"Usage: send-gmail [OPTION]\n" +
@@ -43,8 +45,7 @@ var bcc = opts.options.bcc || [];
 var addresses = Array.prototype.concat.apply( to, cc, bcc );
 var attachments = opts.options.attachment || [];
 var attachmentFileNames = opts.options['attachment-filename'] || [];
-
-var transporter = nodemailer.createTransport( gmailTransport( { client: authenticate.client, draft: ! opts.options.send } ) );
+var configFile = opts.options.config || process.cwd() + '/config.json';
 
 function findInvalidAddresses( callback ) {
 	var invalidAddresses = addresses.filter( isNotEmail );
@@ -58,7 +59,7 @@ function findInvalidAddresses( callback ) {
 }
 
 function findInvalidFiles( callback ) {
-	async.reject( attachments, fs.exists, function( invalidFiles ) {
+	async.reject( attachments.concat( configFile ), fs.exists, function( invalidFiles ) {
 		if ( invalidFiles.length ) {
 			console.error( "Invalid File:" );
 			console.error( "\t" + invalidFiles.join( "\n\t" ) );
@@ -79,7 +80,19 @@ function ensureRequiredOptions( callback ) {
 	}
 }
 
-function send( callback ) {
+function authenticate( callback ) {
+	var authenticate = Authenticate( require( configFile ) );
+
+	authenticate.authenticate( function( err ) {
+		if ( err ) {
+			callback( err );
+		}
+
+		callback( null, authenticate );
+	} );
+}
+
+function send( authenticate, callback ) {
 	var message = {
 		to: to.join( ', ' ),
 		cc: cc.join( ', ' ),
@@ -94,6 +107,8 @@ function send( callback ) {
 			return attachment;
 		} )
 	};
+
+	var transporter = nodemailer.createTransport( gmailTransport( { client: authenticate.client, draft: ! opts.options.send } ) );
 
 	transporter.sendMail( message, callback );
 }
@@ -130,7 +145,7 @@ async.waterfall( [
 	findInvalidAddresses,
 	findInvalidFiles,
 	ensureRequiredOptions,
-	authenticate.authenticate,
+	authenticate,
 	send,
 	getURL,
 	maybeOpenURL,

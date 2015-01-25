@@ -6,12 +6,8 @@ var Google = require( 'googleapis' );
 var OAuth2 = Google.auth.OAuth2;
 var async = require( 'async' );
 
-var config = require( './config.json' );
-
 var openURL = require( __dirname + '/open-url' );
 var Readline = require( __dirname + '/readline-tty' );
-
-var oauth2Client = new OAuth2( config.google.CLIENT_ID, config.google.CLIENT_SECRET, config.google.REDIRECT_URL );
 
 function getStoredCredentials( callback ) {
 	fs.readFile( '.credentials', 'utf8', function( err, response ) {
@@ -34,23 +30,23 @@ function getCredentials( storedCredentials, callback ) {
 	];
 
 	if ( storedCredentials && storedCredentials.access_token ) {
-		oauth2Client.setCredentials( storedCredentials );
+		this.client.setCredentials( storedCredentials );
 
 		if ( storedCredentials.expiry_date > Date.now() + 600000 ) {
 			callback( null, false );
 			return;
 		} else if ( storedCredentials.refresh_token ) {
-			oauth2Client.refreshAccessToken( function( err, credentials ) {
+			this.client.refreshAccessToken( function( err, credentials ) {
 				callback( err, credentials );
 			} );
 			return;
 		}
 	}
 
-	var url = oauth2Client.generateAuthUrl( {
+	var url = this.client.generateAuthUrl( {
 		access_type: 'offline',
 		scope: scopes,
-		hd: config.google.RESTRICT_AUTH_DOMAIN,
+		hd: this.config.google.RESTRICT_AUTH_DOMAIN,
 	} );
 
 	openURL( url, function( err ) {
@@ -75,17 +71,17 @@ function getCredentials( storedCredentials, callback ) {
 
 		readline.question( 'Enter the code from Google: ', function( code ) {
 			console.log( 'You can close the authentication tab in your browser now.' );
-			oauth2Client.getToken( code, function( err, credentials ) {
+			this.client.getToken( code, function( err, credentials ) {
 				if ( err ) {
 					closeAndCallback( err, credentials );
 					return;
 				}
 
-				oauth2Client.setCredentials( credentials );
+				this.client.setCredentials( credentials );
 				closeAndCallback( null, credentials );
-			} );
-		} );
-	} );
+			}.bind( this ) );
+		}.bind( this ) );
+	}.bind( this ) );
 }
 
 function getEmailAddress( credentials, callback ) {
@@ -94,7 +90,7 @@ function getEmailAddress( credentials, callback ) {
 		return;
 	}
 
-	var gmail = Google.gmail( { version: 'v1', auth: oauth2Client } );
+	var gmail = Google.gmail( { version: 'v1', auth: this.client } );
 
 	gmail.users.getProfile( { userId: "me", fields: "emailAddress" }, function( err, response ) {
 		if ( err ) {
@@ -116,16 +112,24 @@ function saveCredentials( credentials, callback ) {
 	}
 }
 
+function Authenticate( config ) {
+	if ( ! ( this instanceof Authenticate ) ) {
+		return new Authenticate( config );
+	}
+
+	this.config = config;
+	this.client = new OAuth2( config.google.CLIENT_ID, config.google.CLIENT_SECRET, config.google.REDIRECT_URL );
+}
+
 function authenticate( callback ) {
 	async.waterfall( [
 		getStoredCredentials,
-		getCredentials,
-		getEmailAddress,
+		getCredentials.bind( this ),
+		getEmailAddress.bind( this ),
 		saveCredentials
 	], callback );
 }
 
-module.exports = {
-	authenticate: authenticate,
-	client: oauth2Client
-};
+Authenticate.prototype.authenticate = authenticate;
+
+module.exports = Authenticate;
