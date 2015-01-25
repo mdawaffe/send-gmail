@@ -98,11 +98,11 @@ function send( callback ) {
 	transporter.sendMail( message, callback );
 }
 
-function getURL( response, callback ) {
+function getURL( info, callback ) {
 	// https://mail.google.com/mail/b/user@domain.com/
 	// https://mail.google.com/a/domain.com/
 
-	var message = response.response.message ? response.response.message : response.response;
+	var message = info.response.message ? info.response.message : info.response;
 	var formatString;
 
 	if ( ~ message.labelIds.indexOf( 'SENT' ) ) {
@@ -113,7 +113,7 @@ function getURL( response, callback ) {
 
 	callback( null, format(
 		formatString,
-		authenticate.client.credentials.email,
+		info.account,
 		message.id
 	) );
 }

@@ -31,6 +31,7 @@ GmailTransport.prototype.send = function( mail, callback ) {
 	var info = {
 		messageId: ( mail.message.getHeader( 'message-id' ) || '' ).replace( /[<>\s]/g, '' ),
 		envelope: mail.data.envelope || mail.message.getEnvelope(),
+		account: this.options.client.credentials.email
 	};
 
 	var send = this.options.draft ? this._gmail.users.drafts.create : this._gmail.users.messages.send;
