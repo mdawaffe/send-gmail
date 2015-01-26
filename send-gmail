@@ -160,5 +160,9 @@ async.waterfall( [
 	getURL,
 	maybeOpenURL,
 ], function( err, URL ) {
-	console.log( URL );
+	if ( err ) {
+		console.error( err );
+	} else {
+		console.log( URL );
+	}
 } );
