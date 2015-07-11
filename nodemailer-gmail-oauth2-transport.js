@@ -19,6 +19,9 @@ function GmailTransport( options ) {
 }
 
 GmailTransport.prototype.send = function( mail, callback ) {
+	// Build the message with the BCC header
+	mail.message.keepBcc = true;
+
 	if ( this.options.error ) {
 		setImmediate( function() {
 			callback( new Error( this.error ) );
