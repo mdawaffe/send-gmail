@@ -5,7 +5,7 @@ var format = require( 'util' ).format;
 
 var GetOpt = require( 'node-getopt' );
 var async = require( 'async' );
-var validator = require( 'validator' );
+var emailAddresses = require( 'email-addresses' );
 
 var nodemailer = require( 'nodemailer' );
 var gmailTransport = require( __dirname + '/nodemailer-gmail-oauth2-transport' );
@@ -46,7 +46,7 @@ var getopt = new GetOpt( [
 var opts = getopt.parseSystem();
 
 function isNotEmail( address ) {
-	return ! validator.isEmail( address, { allow_display_name: true } );
+	return ! emailAddresses.parseOneAddress( address );
 }
 
 var to = opts.argv.concat( opts.options.to || [] );
