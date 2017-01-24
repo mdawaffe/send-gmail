@@ -4,8 +4,7 @@
   "description": "Nodemailer Transport for Sending Email or Creating Drafts with Gmail via OAuth2 Credentials.",
   "main": "nodemailer-gmail-oauth2-transport.js",
   "bin": {
-    "send-gmail": "./bin/send-gmail",
-    "send-gmail-authenticate": "./bin/authenticate-cli.js"
+    "send-gmail": "./bin/send-gmail"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
