@@ -24,6 +24,7 @@ var getopt = new GetOpt( [
 	[ 'S', 'send', "Don't create a draft: send a message." ],
 	[ 'N', 'no-open', "Don't open the message for editing in Gmail." ],
 	[ 'C', 'config=STRING', "Path to config path. Default's to current directory's config.json." ],
+	[ 'r', 'inreplyto=STRING', "Message ID of the e-mail we'd like to reply to (also put in references)"],
 	[ 'h', 'help' ]
 ] ).bindHelp(
 	"\n" +
@@ -56,6 +57,8 @@ var addresses = Array.prototype.concat.apply( to, cc, bcc );
 var attachments = opts.options.attachment || [];
 var attachmentFileNames = opts.options['attachment-filename'] || [];
 var configFile = opts.options.config || process.cwd() + '/config.json';
+var inReplyTo = opts.options.inreplyto || '';
+
 
 function findInvalidAddresses( callback ) {
 	var invalidAddresses = addresses.filter( isNotEmail );
@@ -117,6 +120,10 @@ function send( authenticate, callback ) {
 			return attachment;
 		} )
 	};
+	if (inReplyTo) {
+		message.inReplyTo = inReplyTo;
+		message.references = [inReplyTo];
+	}
 
 	var transporter = nodemailer.createTransport( gmailTransport( { client: authenticate.client, draft: ! opts.options.send } ) );
 
