@@ -1,19 +1,13 @@
-var format = require( 'util' ).format;
-var spawn = require( 'child_process' ).spawn
+var open = require( 'opn' );
 
 function openURL( url, callback ) {
-	var open = spawn( 'open', [ url ] );
-
-	open.on( 'error', callback );
-
-	open.on( 'close', function( exitCode ) {
-		if ( exitCode ) {
-			callback( format( 'Could not open URL "%s" [%d]', url, exitCode ) );
-			return;
-		}
-
-		callback( null, url );
-	} );
+	open( url, { wait: false } ).
+		then( function() {
+			callback();
+		} ).
+		catch( function( error ) {
+			callback( error );
+		} );
 }
 
 module.exports = openURL;
