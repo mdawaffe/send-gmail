@@ -1,6 +1,6 @@
 {
   "name": "nodemailer-gmail-oauth2-transport",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Nodemailer Transport for Sending Email or Creating Drafts with Gmail via OAuth2 Credentials.",
   "main": "nodemailer-gmail-oauth2-transport.js",
   "bin": {
