@@ -1,25 +1,24 @@
 {
-  "name": "nodemailer-gmail-oauth2-transport",
-  "version": "0.0.4",
-  "description": "Nodemailer Transport for Sending Email or Creating Drafts with Gmail via OAuth2 Credentials.",
-  "main": "nodemailer-gmail-oauth2-transport.js",
+  "name": "send-gmail",
+  "version": "0.0.5",
+  "description": "Send Email or Create Drafts with Gmail via OAuth2 Credentials.",
   "bin": {
-    "send-gmail": "./bin/send-gmail"
+    "send-gmail": "./send-gmail"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "mdawaffe",
   "license": "GPL2+",
+  "repository": "mdawaffe/send-gmail",
   "dependencies": {
-    "googleapis": "2.1.1"
-  },
-  "devDependencies": {
     "async": "1.4.0",
     "email-addresses": "2.0.2",
+    "googleapis": "2.1.1",
     "node-getopt": "0.2.3",
     "node-readline-tty": "github:mdawaffe/node-readline-tty",
     "nodemailer": "1.4.0",
+    "nodemailer-gmail-oauth2-transport": "github:mdawaffe/nodemailer-gmail-oauth2-transport",
     "opn": "4.0.2"
   }
 }
