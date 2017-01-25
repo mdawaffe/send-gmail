@@ -7,7 +7,7 @@ var OAuth2 = Google.auth.OAuth2;
 var async = require( 'async' );
 
 var openURL = require( __dirname + '/open-url' );
-var Readline = require( __dirname + '/readline-tty' );
+var Readline = require( 'node-readline-tty' );
 
 function getStoredCredentials( callback ) {
 	fs.readFile( '.credentials', 'utf8', function( err, response ) {
